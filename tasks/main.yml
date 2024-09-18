@@ -1,31 +1,40 @@
----
-# tasks file for lighthouse-role
-
-- name: подготовка репозитория nginx
-  template:
-    src: templates/nginx.repo.j2
-    dest: /etc/yum.repos.d/nginx.repo
-
-- name: install nginx git nano
+- name: NGINX | Install epel-release
   become: true
   ansible.builtin.yum:
-    name:
-      - nginx
-      - git
-      - nano
+    name: epel-release
     state: present
-    update_cache: true
-  notify: Start nginx service
+    
+- name: NGINX | Install NGINX
+  become: true
+  ansible.builtin.yum:
+    name: nginx
+    state: present
 
-- name: clone git repo lighthouse
+- name: NGINX | Create general config
+  become: true
+  ansible.builtin.template:
+    src: templates/nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    mode: 0644
+  notify: reload-nginx
+
+  name: LIGHTHOUSE | Installing Git
+  become: true
+  ansible.builtin.yum:
+    name: git
+    state: present
+
+- name: LIGHTHOUSE | get Lighthouse source
+  become: true
   git:
-    repo: 'https://github.com/VKCOM/lighthouse.git'
-    dest: "/usr/share/nginx/html/lighthouse/"
-    force: yes
-  notify: Start nginx service
+    repo: "{{ lighthouse_vcs }}"
+    version: master
+    dest: "{{ lighthouse_location_dir }}"
 
-- name: подготовка конфига nginx
-  template:
-    src: templates/default.conf.j2
+- name: LIGHTHOUSE | Creating vector config
+  become: true
+  ansible.builtin.template:
+    src: templates/lighthouse.j2
     dest: /etc/nginx/conf.d/default.conf
-  notify: Start nginx service
+    mode: 0644
+  notify: reload-nginx
