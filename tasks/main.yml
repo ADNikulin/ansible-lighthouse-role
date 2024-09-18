@@ -3,13 +3,13 @@
   ansible.builtin.yum:
     name: epel-release
     state: present
-    
+
 - name: NGINX | Install NGINX
   become: true
   ansible.builtin.yum:
     name: nginx
     state: present
-
+    
 - name: NGINX | Create general config
   become: true
   ansible.builtin.template:
@@ -18,7 +18,7 @@
     mode: 0644
   notify: reload-nginx
 
-  name: LIGHTHOUSE | Installing Git
+- name: LIGHTHOUSE | Installing Git
   become: true
   ansible.builtin.yum:
     name: git
